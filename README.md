@@ -144,4 +144,6 @@ src/
 
 ## 📄 许可证
 
-待定(项目定位为完全开源,将尽快补充 LICENSE 文件)。
+本项目基于 [Apache License 2.0](./LICENSE) 开源。
+
+Copyright © 2026 honlnk
