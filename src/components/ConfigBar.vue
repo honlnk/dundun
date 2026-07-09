@@ -4,6 +4,7 @@ import { useChatStore } from '@/stores/chat'
 
 const store = useChatStore()
 const showConfig = ref(false)
+const showClearConfirm = ref(false)
 
 const form = ref({
   baseUrl: '',
@@ -20,11 +21,16 @@ function saveConfig() {
   store.updateConfig({ ...form.value })
   showConfig.value = false
 }
+
+function handleClear() {
+  store.clearMessages()
+  showClearConfirm.value = false
+}
 </script>
 
 <template>
   <!-- 配置触发按钮 -->
-  <div class="px-5 py-2 border-b border-gray-800 shrink-0">
+  <div class="px-5 py-2 border-b border-gray-800 shrink-0 flex items-center justify-between">
     <button
       @click="openConfig"
       class="flex items-center gap-2 text-xs text-gray-400 hover:text-orange-400 transition-colors"
@@ -35,6 +41,13 @@ function saveConfig() {
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
       {{ store.hasConfig ? '已配置 · 点击修改' : '未配置 API · 点击设置' }}
+    </button>
+    <button
+      v-if="store.messages.length > 0"
+      @click="showClearConfirm = true"
+      class="text-xs text-gray-500 hover:text-red-400 transition-colors"
+    >
+      清空对话
     </button>
   </div>
 
@@ -86,6 +99,36 @@ function saveConfig() {
             class="px-4 py-1.5 text-sm bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors"
           >
             保存
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- 清空确认弹窗 -->
+  <Teleport to="body">
+    <div
+      v-if="showClearConfirm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      @click.self="showClearConfirm = false"
+    >
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-[320px] max-w-[90vw]">
+        <h3 class="text-base font-semibold text-gray-100 mb-3">确认清空</h3>
+        <p class="text-sm text-gray-400 mb-5">
+          将清空所有聊天记录，此操作不可恢复。确定要继续吗？
+        </p>
+        <div class="flex justify-end gap-3">
+          <button
+            @click="showClearConfirm = false"
+            class="px-4 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
+          >
+            取消
+          </button>
+          <button
+            @click="handleClear"
+            class="px-4 py-1.5 text-sm bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
+          >
+            清空
           </button>
         </div>
       </div>

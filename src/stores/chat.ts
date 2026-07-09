@@ -2,22 +2,43 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Message, ApiConfig } from '@/types'
 
-const STORAGE_KEY = 'dundun-api-config'
+const CONFIG_KEY = 'dundun-api-config'
+const MESSAGES_KEY = 'dundun-messages'
 
-function loadConfig(): ApiConfig {
+function loadFromStorage<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (raw) return JSON.parse(raw)
   } catch { /* ignore */ }
-  return { baseUrl: '', apiKey: '', model: '' }
+  return fallback
+}
+
+function saveToStorage(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (e) {
+    console.warn('localStorage 写入失败:', e)
+  }
+}
+
+function loadConfig(): ApiConfig {
+  return loadFromStorage<ApiConfig>(CONFIG_KEY, { baseUrl: '', apiKey: '', model: '' })
 }
 
 function saveConfig(config: ApiConfig) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+  saveToStorage(CONFIG_KEY, config)
+}
+
+function loadMessages(): Message[] {
+  return loadFromStorage<Message[]>(MESSAGES_KEY, [])
+}
+
+function saveMessages(messages: Message[]) {
+  saveToStorage(MESSAGES_KEY, messages)
 }
 
 export const useChatStore = defineStore('chat', () => {
-  const messages = ref<Message[]>([])
+  const messages = ref<Message[]>(loadMessages())
   const config = ref<ApiConfig>(loadConfig())
   const isLoading = ref(false)
 
@@ -30,6 +51,10 @@ export const useChatStore = defineStore('chat', () => {
     saveConfig(config.value)
   }
 
+  function persistMessages() {
+    saveMessages(messages.value)
+  }
+
   function addMessage(role: 'user' | 'assistant', content: string) {
     const msg: Message = {
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -38,11 +63,13 @@ export const useChatStore = defineStore('chat', () => {
       timestamp: Date.now(),
     }
     messages.value.push(msg)
+    persistMessages()
     return msg
   }
 
   function clearMessages() {
     messages.value = []
+    persistMessages()
   }
 
   const systemPrompt = `你是一位经验丰富的中餐私教，名叫「顿顿」。你的任务是：
