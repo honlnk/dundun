@@ -8,6 +8,11 @@
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.21.0",
   "dependencies": {
     "pinia": "^2.1.7",
     "vue": "^3.4.21"
